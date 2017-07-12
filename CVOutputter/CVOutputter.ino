@@ -27,15 +27,11 @@ void loop() {
   int pitchRead = pulseIn(pitchPin, HIGH);
   Serial.print("Pitch: ");
   Serial.println(pitchRead);
+  
+  
   int volRead = pulseIn(volumePin, HIGH);
   Serial.print("Volume: ");
   Serial.println(volRead);
-//  int volOn = 0;
-//  if (volRead > 0) {
-//    volOn = 1;
-//  }
-//  dc0.amplitude(volOn);
-//  dc1.amplitude(pitchRead/1023.0);
 //  
   delay(100);
 }

@@ -27,6 +27,8 @@ double val = 0;                 // variable to store the values from sensor(init
 float convertedDistance = 0;
 float max_distance = 33;
 float min_distance = 12;
+float diff = max_distance - min_distance;
+float num_of_registers = 2;
 float max_note = 6;
 float min_note = 0;
 int intval = (max_distance- min_distance) / (max_note - min_note);
@@ -37,6 +39,7 @@ int prev_note = int(min_note);
 float avg = 0.0;
 int buzz_max = 0;
 const int WINDOW_LENGTH = 10; // this number times 25ms is the time averaged over
+float inputVolume = 0;
  
 void setup()
 {
@@ -51,8 +54,7 @@ void setup()
 //  audioShield.volume(0.5);
   
   notefreq.begin(0.15); 
-//  pinMode(A6, OUTPUT);
-//  pinMode(A7, OUTPUT);
+  
    
   Serial.begin(9600);               // starts the serial monitor
 }
@@ -63,8 +65,9 @@ void loop()
   convertedDistance = 0;
   // Get an average
   int mouthPieceRegister = 0;
+  float floatMouthPieceRegister = 0;
   if (notefreq.available() && notevolume.available()) {
-    float  inputVolume= notevolume.readPeakToPeak();
+    inputVolume = notevolume.readPeakToPeak();
     for (int i = 0; i < WINDOW_LENGTH; i++) {
       int freq = notefreq.read();
       if (freq > buzz_max && freq < 600){
@@ -74,42 +77,41 @@ void loop()
       convertedDistance +=  65*pow(val, -1.10);
       delay(5);
     }
-//    Serial.println(buzz_max);
-//    Serial.println(convertedDistance/WINDOW_LENGTH);
-//    mouthPieceRegister = 50;
   }
+  Serial.print("Buzz:");
   Serial.println(buzz_max);
-//    if (inputVolume > 1.5) {
-//      if (buzz_max < 225) {
-
-//      } else {
-//        mouthPieceRegister = 67;
-//      }
-//    } else {
-//    }
-//  } 
+  if (inputVolume > 1.5) {
+    if (buzz_max < 225) {
+      mouthPieceRegister = 50;
+      floatMouthPieceRegister = 0;
+    } else {
+      mouthPieceRegister = 67;
+      floatMouthPieceRegister = 1;
+    }
+  } 
   
   
   if (mouthPieceRegister != 0) {
     int temp = convertedDistance/WINDOW_LENGTH;
     temp = (temp - min_distance) / intval;    
+    float floteNote = float(convertedDistance) / float(WINDOW_LENGTH) - 12.0;
+    floteNote = min(diff, max(0, diff - floteNote));
+    floteNote = (floteNote + diff*floatMouthPieceRegister)*(255.0)/(diff*num_of_registers);
+
     note = min(6, max(0, 6-temp));
-    if (note >= min_note && note <= max_note) {
       note = note + mouthPieceRegister;
       if (note != prev_note)
       {
+        analogWrite(A14, floteNote*(1.17/3.3));
+
         usbMIDI.sendNoteOff(prev_note, 0, channel);
         prev_note = note;
-//        Serial.println("yay");
         usbMIDI.sendNoteOn(note, velocity, channel);
       }
-    } else {
-      usbMIDI.sendNoteOff(prev_note, 0, channel);
-    }
-  }
-  else {
+  } else {
+
     usbMIDI.sendNoteOff(prev_note, 0, channel);
     prev_note = 0;
   }
   delay(50);
-}
+} 
