@@ -34,7 +34,6 @@ float min_note = 0;
 int intval = (max_distance- min_distance) / (max_note - min_note);
 int note = int(min_note);
 int channel = 1; // Defines the MIDI channel to send messages on (values from 1-16)
-int velocity = 100; // Defines the velocity that the note plays at (values from 0-127)
 int prev_note = int(min_note);
 float avg = 0.0;
 int buzz_max = 0;
@@ -52,7 +51,8 @@ void setup()
   audioShield.enable();
   audioShield.inputSelect(myInput);
 //  audioShield.volume(0.5);
-  
+
+  pinMode(A6, OUTPUT);
   notefreq.begin(0.15); 
   
    
@@ -92,6 +92,7 @@ void loop()
   
   
   if (mouthPieceRegister != 0) {
+    digitalWrite(A6, HIGH);
     int temp = convertedDistance/WINDOW_LENGTH;
     temp = (temp - min_distance) / intval;    
     float floteNote = float(convertedDistance) / float(WINDOW_LENGTH) - 12.0;
@@ -106,12 +107,15 @@ void loop()
 
         usbMIDI.sendNoteOff(prev_note, 0, channel);
         prev_note = note;
+        float velocity = (analogRead(A7) / 1024.0) * 127.0;
+        Serial.println(velocity);
         usbMIDI.sendNoteOn(note, velocity, channel);
       }
   } else {
-
+    digitalWrite(A6, LOW);
     usbMIDI.sendNoteOff(prev_note, 0, channel);
     prev_note = 0;
   }
+//  Serial.println(analogRead(A7));
   delay(50);
 } 
