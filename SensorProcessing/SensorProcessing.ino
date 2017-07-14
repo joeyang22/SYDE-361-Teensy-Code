@@ -1,7 +1,3 @@
-// TODO
-// Fix tonguing triggers high frequency buzz at the end of a note 
-// 
-
 #include <SerialFlash.h>
 #include <Audio.h>
 #include <Wire.h>
@@ -66,6 +62,7 @@ void loop()
   // Get an average
   int mouthPieceRegister = 0;
   float floatMouthPieceRegister = 0;
+  inputVolume = 0;
   if (notefreq.available() && notevolume.available()) {
     inputVolume = notevolume.readPeakToPeak();
     for (int i = 0; i < WINDOW_LENGTH; i++) {
@@ -73,19 +70,19 @@ void loop()
       if (freq > buzz_max && freq < 600){
         buzz_max = freq;
       }
+
       val = analogRead(A3) * 0.0048828125;
       convertedDistance +=  65*pow(val, -1.10);
       delay(5);
     }
   }
-  Serial.print("Buzz:");
-  Serial.println(buzz_max);
+
   if (inputVolume > 1.5) {
     if (buzz_max < 225) {
       mouthPieceRegister = 50;
       floatMouthPieceRegister = 0;
     } else {
-      mouthPieceRegister = 67;
+      mouthPieceRegister = 57;
       floatMouthPieceRegister = 1;
     }
   } 
@@ -108,7 +105,6 @@ void loop()
         usbMIDI.sendNoteOff(prev_note, 0, channel);
         prev_note = note;
         float velocity = (analogRead(A7) / 1024.0) * 127.0;
-        Serial.println(velocity);
         usbMIDI.sendNoteOn(note, velocity, channel);
       }
   } else {
@@ -116,6 +112,5 @@ void loop()
     usbMIDI.sendNoteOff(prev_note, 0, channel);
     prev_note = 0;
   }
-//  Serial.println(analogRead(A7));
   delay(50);
 } 
