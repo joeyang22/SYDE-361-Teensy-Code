@@ -54,7 +54,24 @@ void setup()
    
   Serial.begin(9600);               // starts the serial monitor
 }
- 
+
+int getSlideNote(float distance) {
+  if (distance >= 60.5) {
+    return 0;
+  } else if (distance >= 51.1) {
+    return 1;
+  } else if (distance >= 42) {
+    return 2;
+  } else if (distance >= 33.8) {
+    return 3;
+  } else if (distance >= 26.14) {
+    return 4;
+  } else if (distance >= 18.71) {
+    return 5;
+  } else {
+    return 6;
+  }
+}
 void loop()
 {
   buzz_max = 0;
@@ -78,7 +95,7 @@ void loop()
   }
 
   if (inputVolume > 1.5) {
-    if (buzz_max < 225) {
+    if (buzz_max < 150) {
       mouthPieceRegister = 50;
       floatMouthPieceRegister = 0;
     } else {
@@ -91,12 +108,13 @@ void loop()
   if (mouthPieceRegister != 0) {
     digitalWrite(A6, HIGH);
     int temp = convertedDistance/WINDOW_LENGTH;
+    note = getSlideNote(temp);
     temp = (temp - min_distance) / intval;    
     float floteNote = float(convertedDistance) / float(WINDOW_LENGTH) - 12.0;
     floteNote = min(diff, max(0, diff - floteNote));
     floteNote = (floteNote + diff*floatMouthPieceRegister)*(255.0)/(diff*num_of_registers);
+    
 
-    note = min(6, max(0, 6-temp));
       note = note + mouthPieceRegister;
       if (note != prev_note)
       {
